@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小小水族造景師：拯救魚缸生態大作戰！(10選7全動態生成版)</title>
+    <style>
+        body {
+            font-family: 'PingFang TC', 'Heiti TC', 'Microsoft JhengHei', sans-serif;
+            background-color: #ebdcd0; /* 溫暖木質書架色 */
+            background-image: linear-gradient(rgba(235, 220, 208, 0.4), rgba(235, 220, 208, 0.4)), 
+                              url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="none"/><path d="M0,85 L100,85 M0,35 L100,35" stroke="%23dfcfc2" stroke-width="2"/></svg>');
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            margin: 0;
+            user-select: none;
+        }
+        h1 { color: #0056b3; margin: 0 0 5px 0; font-size: 26px; letter-spacing: 1px; }
+        .subtitle { color: #c62828; margin-bottom: 20px; font-weight: bold; font-size: 14px; letter-spacing: 1px; }
+        
+        #game-layout {
+            display: flex;
+            flex-direction: row;
+            gap: 25px;
+            background: #fffdfa;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+            max-width: 1100px;
+            width: 100%;
+            box-sizing: border-box;
+            align-items: flex-start;
+        }
+
+        #left-section { flex: 1.2; display: flex; flex-direction: column; gap: 20px; }
+        #right-section { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+        
+        #aquarium {
+            width: 100%;
+            height: 350px;
+            border: 8px solid #2c3e50;
+            border-radius: 12px 12px 24px 24px;
+            position: relative;
+            background: linear-gradient(to bottom, #e0f7fa, #b2ebf2);
+            overflow: hidden;
+            box-shadow: inset 0 10px 20px rgba(255,255,255,0.2), 0 5px 15px rgba(0,0,0,0.08);
+            box-sizing: border-box;
+        }
+
+        /* 警報與換水閃爍特效層 */
+        #effect-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: white; opacity: 0; z-index: 30; pointer-events: none; transition: all 0.1s ease; }
+        
+        /* 頂部動態哲理天平提示欄 */
+        #philosophy-banner {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(44, 62, 80, 0.9);
+            color: #fff;
+            padding: 6px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 40;
+            text-align: center;
+            letter-spacing: 1px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            width: 80%;
+        }
+        .banner-warn {
+            background: rgba(198, 40, 40, 0.95) !important;
+            box-shadow: 0 0 15px rgba(198, 40, 40, 0.6) !important;
+            animation: shake 0.4s infinite alternate;
+        }
+        @keyframes shake { 0% { transform: translateX(-52%) scale(1); } 100% { transform: translateX(-48%) scale(1.02); } }
+
+        /* 固定造景 */
+        .sand { position: absolute; bottom: 0; width: 100%; height: 40px; background: #e2d2b5; border-radius: 50% 50% 0 0 / 12px 12px 0 0; z-index: 2; }
+        .rock { position: absolute; bottom: 30px; background: #877b6c; width: 70px; height: 45px; left: 260px; border-radius: 30% 60% 40% 40%; z-index: 3; }
+        .anemone { position: absolute; bottom: 32px; width: 52px; height: 32px; left: 180px; background: #ff8a80; border-radius: 50% 50% 30% 30%; z-index: 4; }
+        .algae { position: absolute; background-color: #2e5325; border-radius: 50%; filter: blur(2px); transition: opacity 0.8s; z-index: 3; }
+
+        /* 🟢 動態放進魚缸的物件樣式 🟢 */
+        .dynamic-plant {
+            position: absolute; bottom: 25px; width: 22px; height: 160px; 
+            background: linear-gradient(to top, #2e7d32, #66bb6a);
+            border-radius: 50% 50% 0 0 / 100% 100% 0 0; opacity: 0.9;
+            transform-origin: bottom; animation: sway 4s infinite alternate; z-index: 5;
+        }
+        @keyframes sway { 0% { transform: rotate(-4deg); } 100% { transform: rotate(5deg); } }
+
+        .dynamic-snail {
+            position: absolute; bottom: 28px; width: 20px; height: 14px; background: #ffd54f; 
+            border-radius: 50% 50% 10% 10%; z-index: 6; transition: left 4s ease-in-out;
+            box-shadow: 1px 2px 3px rgba(0,0,0,0.2);
+        }
+        .dynamic-snail::after { content: ''; position: absolute; bottom: -3px; left: -4px; width: 24px; height: 5px; background: #ffe082; border-radius: 50%; }
+
+        .dynamic-shrimp {
+            position: absolute; bottom: 26px; width: 26px; height: 10px; background: rgba(161, 136, 127, 0.7); 
+            border-radius: 40%; z-index: 6; transition: left 3s ease-in-out; border: 1px solid #8d6e63;
+        }
+        .dynamic-shrimp::after { content: '🦐'; position: absolute; top: -8px; left: -2px; font-size: 14px; }
+
+        .dynamic-leaf {
+            position: absolute; bottom: 12px; width: 35px; height: 18px; background: #795548;
+            border-radius: 80% 20% 50% 30%; z-index: 3; transform: rotate(15deg);
+            box-shadow: 1px 2px 4px rgba(0,0,0,0.3); opacity: 0.85; transition: all 1s;
+        }
+
+        .bubble { position: absolute; background: rgba(255, 255, 255, 0.6); border-radius: 50%; animation: floatUp 2s infinite linear; z-index: 15; bottom: 40px; opacity: 0; }
+        @keyframes floatUp { 0% { transform: translateY(0) scale(0.5); opacity: 0; } 10% { opacity: 0.8; } 90% { opacity: 0.4; } 100% { transform: translateY(-250px) scale(1.2); opacity: 0; } }
+        
+        /* 🐠 小丑魚 */
+        .clownfish {
+            position: absolute; width: 55px; height: 36px; background: #ff6d00; border-radius: 50% 45% 45% 50%;
+            top: 150px; left: 240px; transition: all 1.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); z-index: 20;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .clownfish::before { content: ''; position: absolute; left: 18px; top: 0; width: 8px; height: 100%; background: white; border-left: 2px solid #222; border-right: 2px solid #222; }
+        .fish-tail { position: absolute; right: -12px; top: 6px; border-top: 12px solid transparent; border-bottom: 12px solid transparent; border-left: 16px solid #ff6d00; z-index: 21; }
+        .fish-tail::after { content: ''; position: absolute; left: -16px; top: -12px; border-top: 12px solid transparent; border-bottom: 12px solid transparent; border-left: 4px solid #222; }
+        .fish-face { position: absolute; left: 6px; top: 8px; font-size: 10px; font-weight: bold; color: black; z-index: 25; letter-spacing: 1px; }
+
+        /* 💀 翻白肚死亡狀態 */
+        .clownfish.is-dead {
+            transform: rotate(180deg) !important; background: #b0bec5 !important;
+            top: 25px !important; animation: deadFloat 3s infinite ease-in-out !important;
+        }
+        .clownfish.is-dead .fish-tail { border-left-color: #b0bec5 !important; }
+        @keyframes deadFloat { 0%, 100% { transform: rotate(180deg) translateX(0); } 50% { transform: rotate(180deg) translateX(15px); } }
+
+        /* ✨ 歡樂跳躍成功狀態 */
+        .clownfish.is-happy { animation: happyJump 1s infinite cubic-bezier(0.175, 0.885, 0.32, 1.275) !important; background: #ff9100 !important; box-shadow: 0 0 15px #fff176; }
+        @keyframes happyJump { 0%, 100% { transform: translateY(0) scale(1.1); } 50% { transform: translateY(-50px) rotate(8deg) scale(1.2); } }
+
+        /* 數據量表 */
+        #stats-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .stat-box { background: white; border: 2px solid #e2e8f0; padding: 10px 14px; border-radius: 12px; font-size: 13px; font-weight: bold; box-sizing: border-box; }
+        .bar-container { width: 100%; background: #e9ecef; height: 10px; border-radius: 10px; overflow: hidden; margin-top: 6px; }
+        .bar { height: 100%; transition: width 0.4s; }
+        #clean-bar { background-color: #2196f3; } #bacteria-bar { background-color: #4caf50; } #nutrient-bar { background-color: #9c27b0; }
+        #ph-bar { background-color: #ff9800; } #oxygen-bar { background-color: #00bcd4; } #health-bar { background-color: #e53935; }
+
+        /* 右側控制欄 */
+        .counter-box { background: #fff3e0; border: 2px dashed #ff9800; padding: 10px; border-radius: 12px; text-align: center; font-size: 16px; font-weight: bold; color: #e65100; }
+        .tools { display: flex; flex-direction: column; gap: 6px; }
+        button {
+            display: flex; align-items: center; gap: 10px; padding: 8px 14px; font-size: 12px; font-weight: bold;
+            border: 2px solid #e0e0e0; border-radius: 30px; cursor: pointer; background-color: white;
+            transition: all 0.2s; text-align: left; width: 100%; box-sizing: border-box;
+        }
+        button:hover:not(:disabled) { background-color: #fafafa; border-color: #b3e5fc; transform: translateY(-1px); }
+        button .btn-icon { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background-color: #e1f5fe; font-size: 14px; flex-shrink: 0; }
+        button .btn-text-layout { display: flex; flex-direction: column; }
+        button .btn-subtext { font-size: 10px; color: #666; font-weight: normal; }
+        button:disabled { background-color: #f5f5f5; color: #999; border-color: #e0e0e0; cursor: not-allowed; }
+
+        #msg-box { padding: 12px 15px; border-left: 6px solid #007bff; background: #e8f4fd; font-size: 13px; min-height: 100px; border-radius: 0 12px 12px 0; line-height: 1.5; box-sizing: border-box; }
+        .quote { font-weight: bold; color: #c62828; margin-top: 4px; display: block; font-size: 14px; }
+        .footer-tag { text-align: center; font-weight: bold; color: #877b6c; font-size: 15px; margin-top: 6px; letter-spacing: 3px; }
+    </style>
+</head>
+<body>
+
+    <h1>拯救魚缸生態大作戰！</h1>
+    <div class="subtitle">⚖️ 10抽7隨機資源庫：點選任何選項，魚缸都會立刻動態生成對應生物特效！ ⚖️</div>
+
+    <div id="game-layout">
+        <div id="left-section">
+            <div id="aquarium">
+                <div id="effect-overlay"></div>
+                <div id="philosophy-banner">⚖️ 每次重新整理網頁，都會從 10 種工具隨機刷新出 7 種進行考驗！</div>
+
+                <div class="sand"></div>
+                <div class="rock"></div>
+                <div class="anemone"></div>
+                
+                <div id="algae-1" class="algae" style="width:45px; height:45px; top:80px; left:40px; opacity:0.8;"></div>
+                <div id="algae-2" class="algae" style="width:55px; height:50px; top:110px; left:210px; opacity:0.8;"></div>
+                <div id="algae-3" class="algae" style="width:35px; height:35px; top:190px; left:70px; opacity:0.8;"></div>
+                <div id="algae-4" class="algae" style="width:50px; height:45px; top:90px; left:330px; opacity:0.8;"></div>
+                
+                <div id="dynamic-objects-holder"></div>
+                <div id="bubble-zone"></div>
+
+                <div id="fish" class="clownfish">
+                    <div id="fish-eye-face" class="fish-face">● ●</div>
+                    <div class="fish-tail"></div>
+                </div>
+            </div>
+
+            <div id="stats-panel">
+                <div class="stat-box">🧼 清潔度：<b id="clean-txt">15%</b><div class="bar-container"><div id="clean-bar" class="bar" style="width: 15%;"></div></div></div>
+                <div class="stat-box">🦠 硝化菌：<b id="bacteria-txt">30%</b><div class="bar-container"><div id="bacteria-bar" class="bar" style="width: 30%;"></div></div></div>
+                <div class="stat-box">🌱 營養鹽：<b id="nutrient-txt">75%</b><div class="bar-container"><div id="nutrient-bar" class="bar" style="width: 75%;"></div></div></div>
+                <div class="stat-box">🧪 PH值：<b id="ph-txt">5.8</b><div class="bar-container"><div id="ph-bar" class="bar" style="width: 40%;"></div></div></div>
+                <div class="stat-box">🫧 溶氧量：<b id="oxygen-txt">40%</b><div class="bar-container"><div id="oxygen-bar" class="bar" style="width: 40%;"></div></div></div>
+                <div class="stat-box">❤️ 健康值：<b id="health-txt">100%</b><div class="bar-container"><div id="health-bar" class="bar" style="width: 100%;"></div></div></div>
+            </div>
+            <div class="footer-tag">三思而行</div>
+        </div>
+
+        <div id="right-section">
+            <div class="counter-box">🎯 剩餘維護次數：<span id="click-count">3</span> 次</div>
+            <h3>本局隨機抽出的 7 種工具組合：</h3>
+            <div id="tools-container" class="tools"></div>
+            <div id="msg-box">請觀察左側指標，<b>挑選 3 次工具</b>進行生態調配。切記：盲目追求 100% 極致乾淨會觸發「水至清則無魚」警報，害小丑魚翻白肚暴斃喔！</div>
+        </div>
+    </div>
+
+    <script>
+        let cleanliness = 15, bacteria = 30, nutrient = 75, ph = 5.8, oxygen = 40, health = 100;
+        let clicksLeft = 3, isGameOver = false;
+
+        const fishObj = document.getElementById('fish');
+        const eyeObj = document.getElementById('fish-eye-face');
+        const aquarium = document.getElementById('aquarium');
+        const overlay = document.getElementById('effect-overlay');
+        const holder = document.getElementById('dynamic-objects-holder');
+        const banner = document.getElementById('philosophy-banner');
+
+        // 10 種清洗工具核心資料庫 (包含 8, 9, 10 全新科學與處世項目)
+        const toolsPool = [
+            { id: 'plants', icon: '🌱', title: '栽培水生植物', sub: '【溫和善化】動態生長多株水草，吸收營養鹽並釋放大量氧氣' },
+            { id: 'soft_brush', icon: '🪶', title: '用軟毛刷溫柔刷洗', sub: '【適度包容】只擦正面玻璃，刻意留下角落青苔給好菌生存' },
+            { id: 'snail', icon: '🐌', title: '放入黃金螺除藻', sub: '【生物共生】放入金色福壽螺，緩慢啃食右下角的密集青苔' },
+            { id: 'water', icon: '🪣', title: '更換 1/3 的曬過新水', sub: '【中庸重置】大量稀釋毒素，將偏酸水體完美校正回中性 7.0' },
+            { id: 'sponge', icon: '🧼', title: '揉洗外部過濾棉', sub: '【暢通循環】重啟水流過濾，狂冒溶氧氣泡並完整保留濾菌' },
+            { id: 'scrub', icon: '🧽', title: '用鋼刷全面猛刷', sub: '【過度嚴苛】大範圍刮掉污垢，但也會連帶刮死牆壁的好菌' },
+            { id: 'bleach', icon: '🧪', title: '倒入強力化學洗劑', sub: '【極端毀滅】無差別大屠殺，追求絕對無塵潔淨的化學手段' },
+            { id: 'leaves', icon: '🍂', title: '投入腐熟欖仁葉', sub: '【天然調和】投入褐色落葉，釋放單寧酸滋養好菌群繁衍' },
+            { id: 'wave', icon: '🌀', title: '安裝水流造浪泵', sub: '【巨浪激盪】強力馬達運轉吹散雜質，大幅提升溶氧量' },
+            { id: 'shrimp_army', icon: '🦐', title: '放入大和藻蝦軍團', sub: '【精準克制】投入多隻除藻蝦，啃光中央阻擋視線的兩塊青苔' }
+        ];
+
+        // 🟢 核心改版：每局 10 抽 7 動態渲染 🟢
+        function generateRandomTools() {
+            const shuffled = [...toolsPool].sort(() => 0.5 - Math.random());
+            const selected = shuffled.slice(0, 7);
+            const container = document.getElementById('tools-container');
+            container.innerHTML = "";
+
+            selected.forEach(tool => {
+                const btn = document.createElement('button');
+                if (tool.id === 'bleach') btn.className = 'danger';
+                if (['plants', 'soft_brush', 'snail', 'leaves', 'shrimp_army'].includes(tool.id)) btn.className = 'success';
+                
+                btn.onclick = () => useTool(tool.id);
+                btn.innerHTML = `
+                    <span class="btn-icon">${tool.icon}</span>
+                    <div class="btn-text-layout">
+                        <span>${tool.title}</span>
+                        <span class="btn-subtext">${tool.sub}</span>
+                    </div>
+                `;
+                container.appendChild(btn);
+            });
+        }
+        generateRandomTools();
+
+        // 小丑魚游動時鐘
+        let swimTimer = setInterval(() => {
+            if (isGameOver) return;
+            const containerWidth = aquarium.clientWidth - 70, containerHeight = aquarium.clientHeight - 85;
+            const top = Math.floor(Math.random() * (containerHeight - 20)) + 20;
+            const left = Math.floor(Math.random() * (containerWidth - 20)) + 10;
+            fishObj.style.top = top + 'px'; fishObj.style.left = left + 'px';
+        }, 1300);
+
+        // 🚨 「水至清則無魚」動態監控：太過乾淨或好菌死光，血量每秒 -15 🚨
+        let philosophyTimer = setInterval(() => {
+            if (isGameOver) return;
+            if (cleanliness > 88 || bacteria < 8) {
+                health = Math.max(0, health - 15);
+                document.getElementById('health-bar').style.width = health + "%";
+                document.getElementById('health-txt').innerText = health + "%";
+                
+                overlay.style.background = "rgba(198, 40, 40, 0.3)";
+                overlay.style.opacity = overlay.style.opacity === "1" ? "0" : "1";
+                banner.className = "banner-warn";
+                banner.innerHTML = "🚨 警告：水至清則無魚！缸內過度乾淨苛刻，小丑魚正在窒息！";
+                
+                if (health <= 0) { triggerGameOver(false); }
+            } else {
+                overlay.style.opacity = "0";
+                if (cleanliness >= 60 && cleanliness <= 86) {
+                    banner.className = ""; banner.innerHTML = "⚖️ 目前狀態：中庸包容！這就是與萬物共生的智慧。";
+                } else {
+                    banner.className = ""; banner.innerHTML = "⚖️ 目前狀態：生態調節中...請三思後選擇下一步。";
+                }
+            }
+        }, 800);
+
+        function useTool(toolId) {
+            if (isGameOver || clicksLeft <= 0) return;
+            clicksLeft--;
+            document.getElementById('click-count').innerText = clicksLeft;
+            let actionMsg = "", immediateDamage = 0;
+
+            // 🟢 核心優化：點擊工具時，動態將專屬動畫元素射入魚缸中 🟢
+            if (toolId === 'plants') {
+                cleanliness = Math.min(100, cleanliness + 10); nutrient = Math.max(0, nutrient - 45); oxygen = Math.min(100, oxygen + 35); ph = Math.min(7.8, ph + 0.4);
+                actionMsg = "<b>[🌱 栽培植物]</b> 你在魚缸內種下了翠綠水草！它們開始自然舒展，吸收髒物質並釋放新鮮氧氣。這就是溫和的『善化』。";
+                // 動態種水草
+                for(let i=0; i<3; i++) {
+                    let p = document.createElement('div'); p.className = 'dynamic-plant';
+                    p.style.left = (30 + i*40 + Math.random()*20) + 'px'; holder.appendChild(p);
+                }
+            } else if (toolId === 'soft_brush') {
+                cleanliness = Math.min(100, cleanliness + 25);
+                actionMsg = "<b>[🪶 溫源刷洗]</b> 刷淨正面玻璃。你刻意留下了側面與背面的青苔，這正是為好菌留下退路的『包容哲學』！";
+                document.getElementById('algae-2').style.opacity = "0";
+            } else if (toolId === 'snail') {
+                cleanliness = Math.min(100, cleanliness + 20); nutrient = Math.max(0, nutrient - 15); bacteria = Math.min(100, bacteria + 10);
+                actionMsg = "<b>[🐌 放入黃金螺]</b> 金黃色的益螺爬了出來！牠默默啃食缸壁的密集青苔。生物共生法完美體現了兼容並蓄的處世智慧。";
+                // 動態爬出一隻螺
+                let sn = document.createElement('div'); sn.className = 'dynamic-snail'; sn.style.left = '420px'; holder.appendChild(sn);
+                setTimeout(() => { sn.style.left = '310px'; document.getElementById('algae-4').style.opacity = "0"; }, 100);
+            } else if (toolId === 'water') {
+                nutrient = Math.max(0, nutrient - 50); ph = 7.0; oxygen = Math.min(100, oxygen + 20);
+                actionMsg = "<b>[🪣 更換1/3水]</b> 新水灌入！成功把偏酸的水體完美校正回健康的<b>中性 7.0</b>，有毒的鹽分也遭到稀釋。";
+                overlay.style.background = "rgba(0, 123, 255, 0.2)"; overlay.style.height = "20%"; overlay.style.opacity = "1";
+                setTimeout(() => { overlay.style.height = "100%"; overlay.style.opacity = "0"; }, 600);
+            } else if (toolId === 'sponge') {
+                cleanliness = Math.min(100, cleanliness + 35); oxygen = Math.min(100, oxygen + 45);
+                actionMsg = "<b>[🧼 洗過濾棉]</b> 管道暢通，泡泡大噴發！缸內溶氧量暴增，成功減緩了魚兒的缺氧痛苦。";
+                createBubbles();
+            } else if (toolId === 'scrub') {
+                cleanliness = Math.min(100, cleanliness + 60); bacteria = Math.max(0, bacteria - 45); immediateDamage = 20;
+                actionMsg = "<b>[🧽 鋼刷狂刷]</b> 哇！雖然污垢全沒了，但由於手法太過激烈嚴苛，連同好菌一起刮死光了。這就像對朋友太嚴厲，大家都不敢跟你玩囉！";
+                document.querySelectorAll('.algae').forEach(a => a.style.opacity = "0");
+            } else if (toolId === 'bleach') {
+                cleanliness = 100; bacteria = 0; ph = 9.8; oxygen = 0; immediateDamage = 75;
+                actionMsg = "<b>[🧪 強力洗劑]</b> 天啊！魚缸達到了 100% 的極致無塵，但也讓所有生命與好菌徹底滅絕。追求絕對零缺點的完美，反而帶來毀滅！";
+                overlay.style.opacity = "0.9"; setTimeout(() => overlay.style.opacity = "0", 200);
+                holder.innerHTML = ""; document.querySelectorAll('.algae').forEach(a => a.style.opacity = "0");
+            } else if (toolId === 'leaves') {
+                // 🍂 欖仁葉連動
+                ph = Math.max(5.5, ph - 0.5); bacteria = Math.min(100, bacteria + 30); nutrient = Math.max(0, nutrient - 10);
+                actionMsg = "<b>[🍂 投入欖仁葉]</b> 魚缸底部飄落褐色落葉！釋放出天然單寧酸，水色微黃，為好菌大軍提供了極佳的繁衍庇護所。";
+                let lf = document.createElement('div'); lf.className = 'dynamic-leaf'; lf.style.left = (80 + Math.random()*200) + 'px'; holder.appendChild(lf);
+            } else if (toolId === 'wave') {
+                // 🌀 造浪泵連動
+                oxygen = Math.min(100, oxygen + 55); cleanliness = Math.min(100, cleanliness + 10); immediateDamage = 5;
+                actionMsg = "<b>[🌀 安裝造浪泵]</b> 馬達強力激盪！吹散底部髒污並產生強效浪花，溶氧量瞬間破表，但劇烈波動也讓魚兒游得稍微有點喘。";
+                createBubbles();
+            } else if (toolId === 'shrimp_army') {
+                // 🦐 大和藻蝦連動
+                cleanliness = Math.min(100, cleanliness + 30); bacteria = Math.min(100, bacteria + 10);
+                actionMsg = "<b>[🦐 大和藻蝦軍團]</b> 多隻半透明的小蝦跳進魚缸！牠們密密麻麻地啃光了阻擋視線的大青苔，精準安全不傷生態。";
+                let sh = document.createElement('div'); sh.className = 'dynamic-shrimp'; sh.style.left = '-40px'; holder.appendChild(sh);
+                setTimeout(() => { sh.style.left = '120px'; document.getElementById('algae-1').style.opacity = "0"; document.getElementById('algae-3').style.opacity = "0"; }, 100);
+            }
+
+            // 科學扣血判定
+            health = Math.max(0, health - immediateDamage);
+            if (cleanliness < 25) health = Math.max(0, health - 20);
+            if (nutrient > 80) health = Math.max(0, health - 20);
+            if (ph < 6.2 || ph > 8.8) health = Math.max(0, health - 30);
+            if (oxygen < 35) health = Math.max(0, health - 25);
+
+            updateUI();
+            updateMsg(actionMsg);
+
+            if (health <= 0) { 
+                triggerGameOver(false); 
+            } else if (clicksLeft === 0) { 
+                // 完美過關的核心哲學標準：學會留下適度小缺點（清潔度在 60% ~ 86% 之間），才是真大師！
+                setTimeout(() => { 
+                    const isPerfectBalance = (health >= 55 && cleanliness <= 86 && cleanliness >= 60 && bacteria >= 12);
+                    triggerGameOver(isPerfectBalance); 
+                }, 600); 
+            }
+        }
+
+        function triggerGameOver(success) {
+            isGameOver = true;
+            clearInterval(swimTimer); clearInterval(philosophyTimer);
+            document.querySelectorAll('.tools button').forEach(b => b.disabled = true);
+            
+            if (success) {
+                eyeObj.innerText = "^ ▽ ^"; eyeObj.style.fontSize = "16px"; fishObj.classList.add('is-happy');
+                banner.className = ""; banner.style.background = "#2e7d32"; banner.innerHTML = "🏆 成功！你破解了隨機資源的平衡難題！";
+                renderFinal("🏆 <b>【完美覺馨：滿分處世大師】</b><br>太厲害了！面對隨機分配的工具，你依然保持冷靜，沒有盲目追求 100% 的極致乾淨，而是刻意保留了微幅青苔，給好菌留下了共生空間！<br><span class='quote'>💡 這正是《昔時賢文》的精髓：為人處事懂得以寬容待人，不苛求完美、凡事留有餘地。長大後你一定能包容身邊所有的朋友！</span>");
+            } else {
+                eyeObj.innerText = "x   x"; eyeObj.style.fontSize = "14px"; fishObj.classList.add('is-dead');
+                banner.className = "banner-warn"; banner.innerHTML = "❌ 試煉結束：小丑魚翻白肚了！";
+                renderFinal("❌ <b>【終局失敗：小丑魚翻白肚了】</b><br>小丑魚翻白肚浮上水面了...<br>不論是因為你放任環境太髒，還是你盲目使用了太激烈的手段（如化學劑、過度鋼刷）讓魚缸「洗得太過極端乾淨」，都觸發了生態滅絕。<br><span class='quote'>💡 請記住這堂生命的課程，牢記古人智慧：「水太清則無魚，人太察則無謀。」下次重新挑戰時，記得學會多點『包容與留餘地』！</span>");
+            }
+        }
+
+        function createBubbles() {
+            const zone = document.getElementById('bubble-zone'); zone.innerHTML = "";
+            for(let i=0; i<15; i++) {
+                const b = document.createElement('div'); b.className = 'bubble';
+                b.style.left = (120 + Math.random() * 240) + 'px'; b.style.width = (5+Math.random()*7)+'px'; b.style.height = b.style.width;
+                b.style.animationDelay = (Math.random()*0.8)+'s'; zone.appendChild(b);
+            }
+        }
+
+        function renderFinal(scoreDetail) {
+            let msg = "<h3>🏁 局後試煉結算 🏁</h3>" + scoreDetail + "<br><br>🔄 想要刷新下一局隨機工具組合？請按鍵盤：<b>Command + R</b> 重新整理網頁！";
+            document.getElementById('msg-box').innerHTML = msg;
+        }
+
+        function updateUI() {
+            document.getElementById('clean-txt').innerText = cleanliness + "%"; document.getElementById('clean-bar').style.width = cleanliness + "%";
+            document.getElementById('bacteria-txt').innerText = bacteria + "%"; document.getElementById('bacteria-bar').style.width = bacteria + "%";
+            document.getElementById('nutrient-txt').innerText = nutrient + "%"; document.getElementById('nutrient-bar').style.width = nutrient + "%";
+            document.getElementById('ph-txt').innerText = ph.toFixed(1); document.getElementById('ph-bar').style.width = Math.min(100, Math.max(0, (ph-4)*15)) + "%";
+            document.getElementById('oxygen-txt').innerText = oxygen + "%"; document.getElementById('oxygen-bar').style.width = oxygen + "%";
+            document.getElementById('health-txt').innerText = health + "%"; document.getElementById('health-bar').style.width = health + "%";
+            document.querySelectorAll('.algae').forEach(a => { if(a.style.opacity !== "0") a.style.opacity = (100-cleanliness)/100; });
+        }
+
+        function updateMsg(t) { document.getElementById('msg-box').innerHTML = t; }
+    </script>
+</body>
+</html>
